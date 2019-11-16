@@ -1,5 +1,9 @@
-FROM ubuntu:18.04
+FROM ubuntu:16.04
 MAINTAINER Cuda Chen <clh960524@gmail.com>
+
+ENV TEMP_MRCNN_DIR /tmp/mrcnn
+ENV TEMP_COCO_DIR /tmp/coco
+ENV MRCNN_DIR /mrcnn
 
 # Supress warnings about missing front-end. As recommended at:
 # http://stackoverflow.com/questions/22466255/is-it-possibe-to-answer-dialog-questions-when-installing-under-docker
@@ -11,11 +15,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential cmake \
     libopenblas-dev
 
-# Python 3.6
+# Python 
 #
 # For convenience, alias (but don't sym-link) python & pip to python3 & pip3 as recommended in:
 # http://askubuntu.com/questions/351318/changing-symlink-python-to-python3-causes-problems
-RUN apt-get install -y --no-install-recommends python3.6 python3.6-dev python3-pip python3-tk && \
+RUN apt-get install -y --no-install-recommends python3.5 python3.5-dev python3-pip python3-tk && \
     pip3 install --no-cache-dir --upgrade pip setuptools && \
     echo "alias python='python3'" >> /root/.bash_aliases && \
     echo "alias pip='pip3'" >> /root/.bash_aliases
@@ -69,7 +73,7 @@ RUN cd /usr/local/src/opencv && mkdir build && cd build && \
 #
 # Keras 2.2.4
 #
-RUN pip3 install --no-cache-dir --upgrade h5py pydot_ng keras=2.2.4
+RUN pip3 install --no-cache-dir --upgrade h5py pydot_ng keras==2.2.4
 
 # PyCocoTools
 #
@@ -78,17 +82,17 @@ RUN pip3 install --no-cache-dir --upgrade h5py pydot_ng keras=2.2.4
 # but it doesn't seem to be active anymore.
 RUN pip3 install --no-cache-dir git+https://github.com/waleedka/coco.git#subdirectory=PythonAPI
 
-ENV TEMP_MRCNN_DIR /tmp/mrcnn
-ENV TEMP_COCO_DIR /tmp/coco
-ENV MRCNN_DIR /mrcnn
+#ENV TEMP_MRCNN_DIR /tmp/mrcnn
+#ENV TEMP_COCO_DIR /tmp/coco
+#ENV MRCNN_DIR /mrcnn
 
 # NOTE: cloning my Mask R-CNN master (might be unstable HEAD)
-RUN git clone https://github.com/Cuda-Chen/Mask_RCNN.git
+RUN git clone https://github.com/Cuda-Chen/Mask_RCNN.git $TEMP_MRCNN_DIR
 
 RUN git clone https://github.com/waleedka/coco.git $TEMP_COCO_DIR
 
 RUN cd $TEMP_MRCNN_DIR && \
- python3 setup.py install
+    python3 setup.py install
 
 RUN cd $TEMP_COCO_DIR/PythonAPI && \
     sed -i "s/\bpython\b/python3/g" Makefile && \
